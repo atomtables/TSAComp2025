@@ -16,7 +16,7 @@ import React, { useEffect, useState } from "react";
 import { Checkbox } from "@/components/ui/checkbox";
 import { Ionicons } from "@expo/vector-icons";
 import * as Progress from "react-native-progress";
-import { useRouter } from "expo-router";
+import { Link, useRouter, useSegments } from "expo-router";
 import { supabase } from "@/lib/supabase";
 
 interface FoodTypes {
@@ -94,6 +94,7 @@ export default function MainPage() {
   const [acceptedTasks, setAcceptedTasks] = useState<AcceptedTask[]>([]);
 
   const router = useRouter();
+  const segments = useSegments();
 
   useEffect(() => {
     checkUserTypeAndShowPopup();
@@ -355,6 +356,20 @@ export default function MainPage() {
     return "09:00";
   };
 
+  // signout utility function
+  // useEffect(() => {
+  //   async function run() {
+  //     const { error } = await supabase.auth.signOut();
+  //     if (error) {
+  //       console.error("Error signing out:", error.message);
+  //     } else {
+  //       console.log("Signed out successfully.");
+  //     }
+  //   }
+
+  //   run();
+  // }, []);
+
   const updateDecision = async (decisionValue: boolean) => {
     try {
       const {
@@ -475,7 +490,9 @@ export default function MainPage() {
         "Success",
         `You have ${decisionValue ? "accepted" : "declined"} the donation.`
       );
-      router.push("/home");
+      if (segments) {
+        router.push("/home");
+      }
     } catch (error) {
       console.error("Error updating decision:", error);
       Alert.alert("Error", "There was an error submitting your decision.");
@@ -507,6 +524,15 @@ export default function MainPage() {
       console.error("Error loading accepted tasks:", error);
     }
   };
+
+  if (!segments) {
+    return (
+      <View className="flex flex-row w-full justify-center">
+        <Progress.Circle size={25} indeterminate={true} />
+        <Text>Loading...</Text>
+      </View>
+    );
+  }
 
   return (
     <View className="flex-1 bg-white">
@@ -644,24 +670,24 @@ export default function MainPage() {
                                 </View>
                               )}
                             </View>
-                            <TouchableOpacity
-                              className="bg-[#3949AB] py-2 px-6 rounded-lg mt-4 self-center shadow shadow-black/10"
-                              onPress={() =>
-                                router.push({
-                                  pathname: "/details",
-                                  params: {
-                                    recipientName: recipientList[0].name,
-                                    recipientId: recipientList[0].id,
-                                    donorName: donorList[0].name,
-                                    donorId: donorList[0].id,
-                                  },
-                                })
-                              }
+                            <Link
+                              href={{
+                                pathname: "/details",
+                                params: {
+                                  recipientName: recipientList[0].name,
+                                  recipientId: recipientList[0].id,
+                                  donorName: donorList[0].name,
+                                  donorId: donorList[0].id,
+                                },
+                              }}
+                              asChild
                             >
-                              <Text className="text-white font-semibold text-sm">
-                                Details
-                              </Text>
-                            </TouchableOpacity>
+                              <TouchableOpacity className="bg-[#3949AB] py-2 px-6 rounded-lg mt-4 self-center shadow shadow-black/10">
+                                <Text className="text-white font-semibold text-sm">
+                                  Details
+                                </Text>
+                              </TouchableOpacity>
+                            </Link>
                           </View>
                         )}
                         {/* First Card - Combined Recipient and Donor */}
@@ -695,24 +721,25 @@ export default function MainPage() {
                                 </View>
                               )}
                             </View>
-                            <TouchableOpacity
-                              className="bg-[#3949AB] py-2 px-6 rounded-lg mt-4 self-center shadow shadow-black/10"
-                              onPress={() =>
-                                router.push({
-                                  pathname: "/details",
-                                  params: {
-                                    recipientName: recipientList[1].name,
-                                    recipientId: recipientList[1].id,
-                                    donorName: donorList[1].name,
-                                    donorId: donorList[1].id,
-                                  },
-                                })
-                              }
+
+                            <Link
+                              href={{
+                                pathname: "/details",
+                                params: {
+                                  recipientName: recipientList[1].name,
+                                  recipientId: recipientList[1].id,
+                                  donorName: donorList[1].name,
+                                  donorId: donorList[1].id,
+                                },
+                              }}
+                              asChild
                             >
-                              <Text className="text-white font-semibold text-sm">
-                                Details
-                              </Text>
-                            </TouchableOpacity>
+                              <TouchableOpacity className="bg-[#3949AB] py-2 px-6 rounded-lg mt-4 self-center shadow shadow-black/10">
+                                <Text className="text-white font-semibold text-sm">
+                                  Details
+                                </Text>
+                              </TouchableOpacity>
+                            </Link>
                           </View>
                         )}
 
@@ -753,24 +780,24 @@ export default function MainPage() {
                               </Text>
                             </View>
                           </View>
-                          <TouchableOpacity
-                            className="bg-[#3949AB] py-2 px-6 rounded-lg mt-4 self-center shadow shadow-black/10"
-                            onPress={() =>
-                              router.push({
-                                pathname: "/details",
-                                params: {
-                                  recipientName: task.recipientName,
-                                  recipientId: task.recipientId,
-                                  donorName: task.donorName,
-                                  donorId: task.donorId,
-                                },
-                              })
-                            }
+                          <Link
+                            href={{
+                              pathname: "/details",
+                              params: {
+                                recipientName: task.recipientName,
+                                recipientId: task.recipientId,
+                                donorName: task.donorName,
+                                donorId: task.donorId,
+                              },
+                            }}
+                            asChild
                           >
-                            <Text className="text-white font-semibold text-sm">
-                              Details
-                            </Text>
-                          </TouchableOpacity>
+                            <TouchableOpacity className="bg-[#3949AB] py-2 px-6 rounded-lg mt-4 self-center shadow shadow-black/10">
+                              <Text className="text-white font-semibold text-sm">
+                                Details
+                              </Text>
+                            </TouchableOpacity>
+                          </Link>
                         </View>
                       ))}
                   </>
