@@ -1,8 +1,13 @@
+from fastapi import FastAPI, UploadFile, File, HTTPException
+from fastapi.responses import JSONResponse
 import numpy as np
-from tensorflow.keras.models import load_model
-from tensorflow.keras.preprocessing import image
+import tensorflow as tf
+import io
+from PIL import Image
 
-model = load_model("./efficientnet_model.keras")  
+app = FastAPI(title="Food Status Prediction API")
+
+model = tf.keras.models.load_model("efficientnet_model.keras")  
 
 class_names = [
     'Apple__Healthy', 'Apple__Rotten', 'Banana__Healthy', 'Banana__Rotten',
@@ -14,11 +19,11 @@ class_names = [
     'Strawberry__Healthy', 'Strawberry__Rotten', 'Tomato__Healthy'
 ]
 
-def predict_fruit_status(img_path):
-    
-    img = image.load_img(img_path, target_size=(224, 224))
-    img_array = image.img_to_array(img)
-    img_array = np.expand_dims(img_array, axis=0) 
+def predict_fruit_status_from_image(img: Image.Image):
+    # Resize image as the model expects 224x224 input
+    img = img.resize((224, 224))
+    img_array = tf.keras.utils.img_to_array(img)
+    img_array = np.expand_dims(img_array, axis=0)
     img_array = img_array / 255.0  # Normalize
 
     predictions = model.predict(img_array)
@@ -26,5 +31,16 @@ def predict_fruit_status(img_path):
 
     label = class_names[predicted_class]
     fruit, status = label.split("__")
-
     return fruit, status
+
+@app.post("/predict")
+async def predict(file: UploadFile = File(...)):
+    # Read the uploaded file
+    contents = await file.read()
+    try:
+        img = Image.open(io.BytesIO(contents)).convert("RGB")
+    except Exception:
+        raise HTTPException(status_code=400, detail="Invalid image file")
+
+    fruit, status = predict_fruit_status_from_image(img)
+    return JSONResponse(content={"fruit": fruit, "status": status})
